@@ -31,3 +31,29 @@ export const product : TProduct [] = [
         imageURL : "https://picsum.photos/seed/Monitor/400",
     },
 ];
+    
+export const creatUser = (id : string , name : string ,  email : string , password : string) =>{
+const createdAt = new Date().toISOString()
+const newUser :TUsers = {id , name , email , password , createdAt} 
+user.push(newUser);
+return"Cadastro realizado com sucesso"
+}
+
+export const creatProduct = (id : string, name : string, price : number, description : string, imageURL : string)  =>{
+    const newProduct :TProduct = {id , name , price , description , imageURL }
+    product.push(newProduct);
+}
+
+export const getAllUsers =() :TUsers[] =>{
+    return user
+}
+
+export const getAllProducts =() :TProduct[] =>{
+    return product
+}
+
+export const searchProductsByName = (name:string)  =>{
+    const searchProduct =  name
+return product.filter(product => product.name.includes(searchProduct))
+}
+
