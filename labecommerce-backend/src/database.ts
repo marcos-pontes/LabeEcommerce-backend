@@ -1,6 +1,6 @@
 import { TUsers , TProduct } from "./types";
 
-export const user : TUsers [] = [
+export const users : TUsers [] = [
     {
     id :"u001",
     name :"Samuel",
@@ -32,28 +32,34 @@ export const product : TProduct [] = [
     },
 ];
     
-export const creatUser = (id : string , name : string ,  email : string , password : string) =>{
-const createdAt = new Date().toISOString()
-const newUser :TUsers = {id , name , email , password , createdAt} 
-user.push(newUser);
-return"Cadastro realizado com sucesso"
-}
 
-export const creatProduct = (id : string, name : string, price : number, description : string, imageURL : string)  =>{
-    const newProduct :TProduct = {id , name , price , description , imageURL }
-    product.push(newProduct);
-}
+export const createUser = (id : string , name : string ,  email : string , password : string) =>{
+    const createdAt = new Date().toISOString()
+    const newUser :TUsers = {id , name , email , password , createdAt} 
+    users.push(newUser);
+    return "Cadastro realizado com sucesso"
+    }
+    
+    export const createProduct = (id : string, name : string, price : number, description : string, imageURL : string)  =>{
+        const newProduct :TProduct = {id , name , price , description , imageURL }
+        product.push(newProduct);
+        return "Cadastro realizado com sucesso"
+    }
 
-export const getAllUsers =() :TUsers[] =>{
-    return user
+export const getAllUsers = () =>{
+    return users
 }
 
 export const getAllProducts =() :TProduct[] =>{
     return product
 }
 
-export const searchProductsByName = (name:string)  =>{
-    const searchProduct =  name
-return product.filter(product => product.name.includes(searchProduct))
+export const searchProductsByName = (name:string) :TProduct[] =>{
+    const searchProduct =  name.toLowerCase()
+        return product.filter(product => product.name.toLowerCase().includes(searchProduct))
 }
 
+export const searchUserByName = (name:string)  =>{
+    const searchUser =  name.toLowerCase()
+        return users.filter(user => user.name.toLowerCase().includes(searchUser))
+}
