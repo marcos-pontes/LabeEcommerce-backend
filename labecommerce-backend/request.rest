@@ -1,0 +1,7 @@
+###Get all uers
+GET http://localhost:3003/getAllUers
+
+###Get all products
+GET http://localhost:3003/products
+###Get all products
+GET http://localhost:3003/products/search
