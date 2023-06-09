@@ -16,7 +16,7 @@ export const users : TUsers [] = [
 }
 ];
 
-export const product : TProduct [] = [
+export const products : TProduct [] = [
     {
         id : "prod001",
         name : "Mouse gamer",
@@ -42,7 +42,7 @@ export const createUser = (id : string , name : string ,  email : string , passw
     
     export const createProduct = (id : string, name : string, price : number, description : string, imageURL : string)  =>{
         const newProduct :TProduct = {id , name , price , description , imageURL }
-        product.push(newProduct);
+        products.push(newProduct);
         return "Cadastro realizado com sucesso"
     }
 
@@ -51,12 +51,12 @@ export const getAllUsers = () =>{
 }
 
 export const getAllProducts =() :TProduct[] =>{
-    return product
+    return products
 }
 
 export const searchProductsByName = (name:string) :TProduct[] =>{
     const searchProduct =  name.toLowerCase()
-        return product.filter(product => product.name.toLowerCase().includes(searchProduct))
+        return products.filter(products => products.name.toLowerCase().includes(searchProduct))
 }
 
 export const searchUserByName = (name:string)  =>{
