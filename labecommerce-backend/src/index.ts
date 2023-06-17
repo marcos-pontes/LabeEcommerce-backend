@@ -1,7 +1,7 @@
 import { TProduct, TUsers } from "./types";
 import {
   createProduct,
-  createUser,
+
   products,
   searchProductsByName,
   searchUserByName,
@@ -9,7 +9,7 @@ import {
 } from "./database";
 import express, { Request, Response } from "express";
 import cors from "cors";
-import { send } from "process";
+
 
 const app = express();
 app.use(express.json());
@@ -18,14 +18,52 @@ app.use(cors());
 app.listen(3003, () => {
   console.log("Service listening on gate 3003");
 });
-
+//Get all users
 app.get("/users", (req: Request, res: Response) => {
-  res.status(200).send(users);
+  try {
+    const name = req.query.name as string;
+   const userFilter = users.filter((users) =>
+    users.name.toLowerCase().includes(name.toLowerCase())
+  )
+  if(!userFilter.length){
+    res.statusCode=404;
+    throw new Error("User not found")
+  }
+  if(name){
+    res.status(200).send(userFilter);
+  }else{
+    res.status(200).send(users)
+  }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
 });
 
-app.get("/products/search", (req: Request, res: Response) => {
-  const name = req.query.name as string;
-  res.status(200).send(searchProductsByName(name));
+//Get all products
+app.get("/products", (req: Request, res: Response) => {
+  try {
+    const name = req.query.name as string;
+   const prodFilter = products.filter((products) =>
+    products.name.toLowerCase().includes(name.toLowerCase())
+  )
+  if(prodFilter.length){
+    res.statusCode=404;
+    throw new Error("Product not found")
+  }
+  if(name){
+    res.status(200).send(prodFilter);
+  }else{
+    res.status(200).send(products)
+  }
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
 });
 
 app.get("/users/search", (req: Request, res: Response) => {
@@ -35,68 +73,159 @@ app.get("/users/search", (req: Request, res: Response) => {
   res.status(200).send(resposta);
 });
 
-app.post("/products/add", (req: Request, res: Response) => {
-  const { id, name, price, description, imageURL } = req.body;
-  res.status(200).send(createProduct(id, name, price, description, imageURL));
-});
-
+//Create a new user
 app.post("/users/add", (req: Request, res: Response) => {
-  const { id, name, email, password } = req.body;
-  res.status(200).send(createUser(id, name, email, password));
-  console.log(users);
-});
-
-app.delete("/products/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
-  const deleteById = products.findIndex(
-    (product) => product.id.toLowerCase() === id.toLowerCase()
-  );
-  if (deleteById >= 0) {
-    products.splice(deleteById, 1);
-    res.status(200).send("Successfully deleted product");
-  } else {
-    res.status(404).send("Product not found");
+  try {
+    const { id, name, email, password } = req.body;
+    const createdAt = new Date().toISOString();
+    const newUser: TUsers = { id, name, email, password, createdAt };
+    const repetId = users.find((user) => user.id === id);
+    const repetEmail = users.find((user) => user.email === email);
+    
+    if (!id || !name || !email || !password) {
+      res.statusCode = 428;
+      throw new Error("Check the filled fields");
+    }
+    if (repetId) {
+      res.statusCode = 412;
+      throw new Error("id already exists, try another id");
+    }
+    if (repetEmail) {
+      res.statusCode = 412;
+      throw new Error("email already exists, try another id");
+    }
+    users.push(newUser);
+    res.status(200).send("Successfully registered user");
+    console.log(users);
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
   }
-  console.table(products);
 });
 
+//Create a new product
+app.post("/products/add", (req: Request, res: Response) => {
+  try {
+    const { id, name, price, description, imageURL } = req.body;
+    const repetId = products.find((products) => products.id === id);
+    
+    if (!id || !name || !price || !description || !imageURL) {
+      res.statusCode = 428;
+      throw new Error("Check the filled fields");
+    }
+    if (repetId) {
+      res.statusCode = 412;
+      throw new Error("id already exists, try another id");
+    }
+    const newProduct: TProduct = { id, name, price, description, imageURL };
+  products.push(newProduct);
+    res.status(200).send("Product added sucessfully");
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    
+    res.status(500).send("Unknown error");
+  }
+});
+//Delete User
 app.delete("/users/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
-  const deleteById = users.findIndex(
-    (user) => user.id.toLowerCase() === id.toLowerCase()
-  );
-  if (deleteById >= 0) {
+  try {
+    const id = req.params.id;
+    const deleteById = users.findIndex((user) => user.id.toLowerCase() === id.toLowerCase());
+    if (!id) {
+      res.statusCode = 400;
+      throw new Error("id already exists, try another id");
+    }
+    if (deleteById < 0) {
+      res.statusCode = 403;
+      throw new Error("product does not exist or has already been deleted");
+    }
     users.splice(deleteById, 1);
     res.status(200).send("Successfully deleted user");
-  } else {
-    res.status(404).send("user not found");
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
   }
-  console.table(users);
 });
-
+//Delete product
+app.delete("/products/:id", (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const deleteById = products.findIndex(
+      (product) => product.id.toLowerCase() === id.toLowerCase()
+    );
+    if (!id) {
+      res.statusCode = 400;
+      throw new Error("id already exists, try another id");
+    }
+    if (deleteById < 0) {
+      res.statusCode = 404;
+      throw new Error("product does not exist or has already been deleted");
+    }
+    products.splice(deleteById, 1);
+    res.status(200).send("Successfully deleted product");
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
+});
+//Edit user
 app.put("/users/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
+  try {
+    const id = req.params.id;
   const { id: newId, name, email, password } = req.body;
-  const findUser = users.find(
-    (user) => user.id.toLowerCase() === id.toLowerCase()
-  );
+  const findUser = users.find((user) => user.id.toLowerCase() === id.toLowerCase());
+
+  if(newId && newId[0] !=='u'){
+    res.statusCode = 400;
+    throw new Error('The ID field must start with the letter "u".')
+  }
+
   if (findUser) {
     findUser.id = newId || findUser.id;
     findUser.name = name || findUser.name;
     findUser.email = email || findUser.email;
     findUser.password = password || findUser.password;
-    res.status(200).send("Successfully updated user");
-    console.log(users);
+    
   } else {
-    res.status(400).send("user not updated");
-    console.log(users);
+    res.statusCode = 404;
+    throw new Error('User not edited, check information')
   }
+  res.status(200).send("Successfully updated user");
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
+  
 });
-
+//Edit product
 app.put("/products/:id", (req: Request, res: Response) => {
-  const id = req.params.id;
+  try {
+    const id = req.params.id;
   const { id: newId, name, price, description, imageURL } = req.body;
-  const findproduct = products.find((product) => product.id.toLowerCase() === id.toLowerCase());
+  const findproduct = products.find(
+    (product) => product.id.toLowerCase() === id.toLowerCase()
+  );
+  const findIndex = products.findIndex((product) => product.id.toLowerCase() === id.toLowerCase())
+
+    if (findIndex <0){
+
+    }
+
+  if(newId && newId[0] !=='p'){
+    res.statusCode = 400;
+    throw new Error('The ID field must start with the letter "p".')
+  }
+
   if (findproduct) {
     findproduct.id = newId || findproduct.id;
     findproduct.name = name || findproduct.name;
@@ -104,9 +233,13 @@ app.put("/products/:id", (req: Request, res: Response) => {
     findproduct.description = description || findproduct.description;
     findproduct.imageURL = imageURL || findproduct.imageURL;
     res.status(200).send("Successfully updated product");
-    console.log(products);
-  } else {
-    res.status(400).send("product not updated");
-    console.log(products);
+    
+  }
+    
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
   }
 });
