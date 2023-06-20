@@ -1,0 +1,20 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "Aula de node e fundamentos do back-end",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "return": "clear && node index.js brazil",
+    "returnb": "clear && node exercicio2.js b",
+    "returnc": "clear && node exercicio2.js b"
+  },
+  "keywords": [
+    "node"
+  ],
+  "author": "Marcos Pontes",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}
