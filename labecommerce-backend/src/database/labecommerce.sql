@@ -92,6 +92,10 @@ SET name = 'teste',
     image_url = 'teste'
 WHERE id = 'prod005';
 
+
+
+
+
 ----------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS purchases(
@@ -100,12 +104,11 @@ CREATE TABLE IF NOT EXISTS purchases(
     total_price REAL NOT NULL,
     created_at TEXT NOT NULL,
     FOREIGN KEY (buyer) REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
+SELECT * FROM purchases;
 
-INSERT INTO purchases (id, buyer , total_price , created_at)
-VALUES   ('1', 'u002', 19.99, '2023-06-26 10:30:00'),
-    ('2', 'u003', 49.99, '2023-06-26 15:45:00'),
-    ('3', 'u001', 9.99, '2023-06-27 09:15:00');
     UPDATE purchases 
     SET total_price = 25.99
     WHERE buyer = 'user1' AND id = '1';
@@ -118,3 +121,32 @@ purchases.total_price,
 purchases.created_at
 FROM users
 JOIN purchases ON users.id = purchases.buyer;
+
+
+CREATE TABLE if NOT EXISTS purchases_products(
+    purchase_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    quantity REAL NOT NULL,
+    FOREIGN KEY (purchase_id) REFERENCES purchases(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+SELECT * FROM purchases_products;
+
+INSERT INTO purchases (id, buyer , total_price , created_at)
+VALUES   ('c001', 'u002', 19.99, '2023-06-26 10:30:00'),
+    ('c002', 'u003', 49.99, '2023-06-26 15:45:00'),
+    ('c003', 'u001', 9.99, '2023-06-27 09:15:00');
+
+INSERT INTO purchases_products (purchase_id, product_id, quantity)
+VALUES ('c001', 'prod001', 2),
+('c002', 'prod004', 1),
+('c003', 'prod001', 3);
+
+SELECT * FROM purchases
+JOIN purchases_products on purchases.id = purchases_products.purchase_id;
+
+UPDATE purchases
+SET id = 'teste'
+WHERE id = 'c001';
