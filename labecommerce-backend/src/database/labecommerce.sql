@@ -92,13 +92,10 @@ SET name = 'teste',
     image_url = 'teste'
 WHERE id = 'prod005';
 
-<<<<<<< HEAD
 
 
 
 
-=======
->>>>>>> 3fb0b83a493a09af5adfe000edd95eb836921ae1
 ----------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS purchases(
@@ -107,20 +104,11 @@ CREATE TABLE IF NOT EXISTS purchases(
     total_price REAL NOT NULL,
     created_at TEXT NOT NULL,
     FOREIGN KEY (buyer) REFERENCES users(id)
-<<<<<<< HEAD
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
 SELECT * FROM purchases;
 
-=======
-);
-
-INSERT INTO purchases (id, buyer , total_price , created_at)
-VALUES   ('1', 'u002', 19.99, '2023-06-26 10:30:00'),
-    ('2', 'u003', 49.99, '2023-06-26 15:45:00'),
-    ('3', 'u001', 9.99, '2023-06-27 09:15:00');
->>>>>>> 3fb0b83a493a09af5adfe000edd95eb836921ae1
     UPDATE purchases 
     SET total_price = 25.99
     WHERE buyer = 'user1' AND id = '1';
@@ -132,7 +120,6 @@ users.email,
 purchases.total_price,
 purchases.created_at
 FROM users
-<<<<<<< HEAD
 JOIN purchases ON users.id = purchases.buyer;
 
 
@@ -163,6 +150,3 @@ JOIN purchases_products on purchases.id = purchases_products.purchase_id;
 UPDATE purchases
 SET id = 'teste'
 WHERE id = 'c001';
-=======
-JOIN purchases ON users.id = purchases.buyer;
->>>>>>> 3fb0b83a493a09af5adfe000edd95eb836921ae1
