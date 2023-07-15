@@ -127,7 +127,9 @@ CREATE TABLE if NOT EXISTS purchases_products(
     purchase_id TEXT NOT NULL,
     product_id TEXT NOT NULL,
     quantity REAL NOT NULL,
-    FOREIGN KEY (purchase_id) REFERENCES purchases(id),
+    FOREIGN KEY (purchase_id) REFERENCES purchases(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
     FOREIGN KEY (product_id) REFERENCES products(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE

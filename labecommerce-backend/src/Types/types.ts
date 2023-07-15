@@ -3,12 +3,12 @@ export type TUsers = {
     name :string,
     email :string,
     password: string,
-    createdAt :string,
+    created_at :string,
 }
 export type TProduct = {
     id :string,
     name :string,
     price :number,
     description :string,
-    imageURL :string,
+    image_url :string,
 }
