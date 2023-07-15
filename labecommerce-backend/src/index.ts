@@ -1,14 +1,14 @@
-import { TProduct, TUsers } from "./types";
+import { TProduct,  } from "./types";
 import {
-  createProduct,
+  
 
   products,
-  searchProductsByName,
-  searchUserByName,
+ 
   users,
 } from "./database";
 import express, { Request, Response } from "express";
 import cors from "cors";
+import { db } from "./database/knex";
 
 
 const app = express();
@@ -19,10 +19,13 @@ app.listen(3003, () => {
   console.log("Service listening on gate 3003");
 });
 //Get all users
-app.get("/users", (req: Request, res: Response) => {
+app.get("/users", async(req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+    SELECT * FROM users
+    `);
     const name = req.query.name as string;
-   const userFilter = users.filter((users) =>
+   const userFilter = result.filter((users:any) =>
     users.name.toLowerCase().includes(name.toLowerCase())
   )
   if(!userFilter.length){
@@ -32,7 +35,7 @@ app.get("/users", (req: Request, res: Response) => {
   if(name){
     res.status(200).send(userFilter);
   }else{
-    res.status(200).send(users)
+    res.status(200).send(result)
   }
   } catch (error) {
     if (error instanceof Error) {
@@ -43,20 +46,25 @@ app.get("/users", (req: Request, res: Response) => {
 });
 
 //Get all products
-app.get("/products", (req: Request, res: Response) => {
+
+app.get("/products", async (req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+    SELECT * FROM products
+    `);
+    
     const name = req.query.name as string;
-   const prodFilter = products.filter((products) =>
+   const prodFilter = result.filter((products:any) =>
     products.name.toLowerCase().includes(name.toLowerCase())
   )
-  if(prodFilter.length){
+  if(!prodFilter.length){
     res.statusCode=404;
-    throw new Error("Product not found")
+    throw new Error("Product not foundd")
   }
   if(name){
     res.status(200).send(prodFilter);
   }else{
-    res.status(200).send(products)
+    res.status(200).send(result)
   }
   } catch (error) {
     if (error instanceof Error) {
@@ -65,22 +73,50 @@ app.get("/products", (req: Request, res: Response) => {
     res.status(500).send("Unknown error");
   }
 });
+app.get("/products/:id", async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const result = await db.raw(`
+    SELECT *
+FROM products
+WHERE id = '${id}';
+    `);
+    
+   const prodFilter = result.filter((products:any) =>
+    products.id == id
+  )
+  if(!prodFilter.length){
+    res.statusCode=404;
+    throw new Error("ID does not exist")
+  } 
+  
+    res.status(200).send(result);
+  
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
+});
 
-app.get("/users/search", (req: Request, res: Response) => {
+/* app.get("/users/search", (req: Request, res: Response) => {
   const name = req.query.name as string;
   const resposta = searchUserByName(name);
   console.log(resposta);
   res.status(200).send(resposta);
-});
+}); */
 
 //Create a new user
-app.post("/users/add", (req: Request, res: Response) => {
+app.post("/users/add", async(req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+    SELECT * FROM users
+    `);
     const { id, name, email, password } = req.body;
     const createdAt = new Date().toISOString();
-    const newUser: TUsers = { id, name, email, password, createdAt };
-    const repetId = users.find((user) => user.id === id);
-    const repetEmail = users.find((user) => user.email === email);
+    const repetId = result.find((user:any) => user.id === id);
+    const repetEmail = result.find((user:any) => user.email === email);
     
     if (!id || !name || !email || !password) {
       res.statusCode = 428;
@@ -94,9 +130,11 @@ app.post("/users/add", (req: Request, res: Response) => {
       res.statusCode = 412;
       throw new Error("email already exists, try another id");
     }
-    users.push(newUser);
-    res.status(200).send("Successfully registered user");
-    console.log(users);
+    await db.raw(`
+    INSERT INTO users (id, name, email, password, created_at)
+    VALUES('${id}', '${name}' , '${email}', '${password}', '${createdAt}');
+        `)
+    res.status(201).send("Successfully registered user");
   } catch (error) {
     if (error instanceof Error) {
       res.send(error.message);
@@ -106,10 +144,13 @@ app.post("/users/add", (req: Request, res: Response) => {
 });
 
 //Create a new product
-app.post("/products/add", (req: Request, res: Response) => {
+app.post("/products/add", async (req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+    SELECT * FROM products
+    `);
     const { id, name, price, description, imageURL } = req.body;
-    const repetId = products.find((products) => products.id === id);
+    const repetId = result.find((products:any) => products.id === id);
     
     if (!id || !name || !price || !description || !imageURL) {
       res.statusCode = 428;
@@ -120,8 +161,11 @@ app.post("/products/add", (req: Request, res: Response) => {
       throw new Error("id already exists, try another id");
     }
     const newProduct: TProduct = { id, name, price, description, imageURL };
-  products.push(newProduct);
-    res.status(200).send("Product added sucessfully");
+    await db.raw(`
+    INSERT INTO products (id, name, price, description, image_url)
+    VALUES('${id}', '${name}', '${price}', '${description}', '${imageURL}')
+    `)
+    res.status(201).send("Product added sucessfully");
   } catch (error) {
     if (error instanceof Error) {
       res.send(error.message);
@@ -208,17 +252,21 @@ app.put("/users/:id", (req: Request, res: Response) => {
   
 });
 //Edit product
-app.put("/products/:id", (req: Request, res: Response) => {
+app.put("/products/:id", async (req: Request, res: Response) => {
   try {
+    const result = await db.raw(`
+    SELECT * FROM products
+    `);
     const id = req.params.id;
   const { id: newId, name, price, description, imageURL } = req.body;
-  const findproduct = products.find(
-    (product) => product.id.toLowerCase() === id.toLowerCase()
+  const findproduct = result.find(
+    (product:any) => product.id.toLowerCase() === id.toLowerCase()
   );
-  const findIndex = products.findIndex((product) => product.id.toLowerCase() === id.toLowerCase())
+  const findIndex = result.findIndex((product:any) => product.id.toLowerCase() === id.toLowerCase())
 
     if (findIndex <0){
-
+      res.statusCode = 404
+      throw new Error("ID not found")
     }
 
   if(newId && newId[0] !=='p'){
@@ -236,6 +284,75 @@ app.put("/products/:id", (req: Request, res: Response) => {
     
   }
     
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
+});
+
+app.post('/purchases', async (req: Request, res:Response) => {
+  try {
+    const { id, buyer, total_price} = req.body;
+    const created_at = new Date().toISOString();
+    const result = await db.raw(`
+    SELECT * FROM purchases
+    `);
+    const idPurchases = result.find((p:any)=> p.id === id)
+    if(idPurchases){
+      res.statusCode = 401;
+      throw new Error("ID already exists!")
+    }
+    if(!id || !buyer || !total_price) {
+      res.statusCode = 404;
+      throw new Error("invalid data")
+    }
+    console.log(1)
+    if(typeof total_price !== 'number' || isNaN(total_price)){
+      res.statusCode = 404;
+      throw new Error("total price must be a Number!")
+    }
+    await db.raw(`
+    INSERT INTO purchases(id, buyer , total_price , created_at)
+VALUES("${id}","${buyer}","${total_price}","${created_at}");
+    `)
+    res.status(201).send("Purchase completed successfully")
+  } catch (error) {
+    if (error instanceof Error) {
+      res.send(error.message);
+    }
+    res.status(500).send("Unknown error");
+  }
+  
+});
+
+app.get('/purchase', async(req:Request, res:Response) => {
+const result = await db.raw(`
+SELECT * FROM purchases;
+    `);
+    res.status(200).send(result)
+});
+
+app.get("/purchases/:id", async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const result = await db.raw(`
+    SELECT *
+FROM purchases
+WHERE id = '${id}';
+    `);
+    
+   const prodFilter = result.filter((products:any) =>
+    products.id == id
+  )
+  if(!prodFilter.length){
+    res.statusCode=404;
+    throw new Error("ID does not exist")
+  } 
+  
+    res.status(200).send(result);
+  
   } catch (error) {
     if (error instanceof Error) {
       res.send(error.message);
