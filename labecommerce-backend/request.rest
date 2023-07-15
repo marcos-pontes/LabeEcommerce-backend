@@ -1,8 +1,8 @@
 ###Get all uers
-GET http://localhost:3003/getAllUers
+GET http://localhost:3003/users
 
 ###Get all products
-GET http://localhost:3003/products
+GET http://localhost:3003/products/?name=moni
 ###Get all products
 GET http://localhost:3003/products/search
 
@@ -25,6 +25,7 @@ Content-Type: application/json
 
 ### Edit user by id
 PUT http://localhost:3003/products/prod002
+
 Content-Type: application/json
 
 {
